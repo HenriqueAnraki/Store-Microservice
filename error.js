@@ -1,4 +1,6 @@
 const { send } = require('micro')
+const { ValidationError } = require('objection')
+const { UniqueViolationError, NotNullViolationError, ForeignKeyViolationError, DataError } = require('objection-db-errors')
 
 class CommonError extends Error {}
 
@@ -9,7 +11,18 @@ class CommonError extends Error {}
  * @param  {[type]} err Error Expected Class or Generic.
  */
 const errorHandler = async (req, res, err) => {
-  if (err instanceof CommonError) {
+  if (err instanceof ValidationError) {
+    return send(res, 400, { err: { message: 'Validation Error', data: Object.keys(err.data) } })
+  } else if (err instanceof UniqueViolationError) {
+    // Note: err column is not available for mysql
+    return send(res, 400, { err: { message: 'Unique Violation', data: err.constraint } })
+  } else if (err instanceof NotNullViolationError) {
+    return send(res, 400, { err: { message: 'Not Null Violation', data: err.column } })
+  } else if (err instanceof ForeignKeyViolationError) {
+    return send(res, 400, { err: { message: 'Foreign Key Violation', data: err.constraint } })
+  } else if (err instanceof DataError) {
+    return send(res, 400, { err: { message: 'Error: Data Error Violation', data: err.toString() } })
+  } else if (err instanceof CommonError) {
     return send(res, err.statusCode, err.json)
   } else {
     return send(res, err.statusCode || 500, { err: err.toString() })
