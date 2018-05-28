@@ -33,12 +33,23 @@ const newProduct = async (req, res) => {
   return { message: 'Create successful.' }
 }
 
+const getProductStringQuery = async (req) => {
+  const { id, name, maxprice, minprice } = req.query
+
+  console.log(req.query)
+  const product = await Product
+    .query()
+    .skipUndefined()
+    .where('id', id)
+    .andWhere('name', 'like', '%' + name + '%')
+    .andWhere('price', '>=', minprice)
+    .andWhere('price', '<=', maxprice)
+
+  return product
+}
+
 const getProduct = async (req, res) => {
-  const { id } = req.query
-
-  if (!id) throw createError(401, 'Invalid request.')
-
-  const product = await getProductById(id)
+  const product = await getProductStringQuery(req)
 
   console.log('product found: ', product)
 
