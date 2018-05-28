@@ -4,6 +4,7 @@ const { Model } = require('objection')
 const { handleErrors } = require('./error')
 const category = require('./category')
 const product = require('./product')
+const image = require('./image')
 
 const Knex = require('knex')
 const knexfile = require('./models/knexfile')
@@ -23,9 +24,9 @@ module.exports = handleErrors(
     get('/product', product.getProduct),
     post('/product', product.newProduct),
     patch('/product', product.updateProduct),
-    del('/product', product.deleteProduct)/*,
+    del('/product', product.deleteProduct),
     get('/img', image.getImage),
     post('/img', image.saveImage),
-    del('/img', image.deleteImage) */
+    del('/img', image.deleteImage)
   )
 )

@@ -1,8 +1,9 @@
 const { json } = require('micro')
 
 const { createError } = require('./error')
-const Product = require('./models/Product')
 const { getCategoryById } = require('./category')
+
+const Product = require('./models/Product')
 
 const getProductById = async (id) => {
   const product = await Product.query().findById(id)
@@ -24,7 +25,7 @@ const newProduct = async (req, res) => {
   if (product.length > 0) throw createError(401, 'Product already exist.')
 
   const category = await getCategoryById(idCategory)
-  if (!category) throw createError(402, 'Invalid category')
+  if (!category) throw createError(402, 'Invalid category.')
 
   console.log('insert product')
 
@@ -44,6 +45,12 @@ const getProductStringQuery = async (req) => {
     .andWhere('name', 'like', '%' + name + '%')
     .andWhere('price', '>=', minprice)
     .andWhere('price', '<=', maxprice)
+    .eager('images')
+    .modifyEager('images', builder => {
+      builder.select('id', 'imgUrl')
+    })
+
+  if (product.length <= 0) throw createError(401, 'Product not found.')
 
   return product
 }
@@ -55,7 +62,7 @@ const getProduct = async (req, res) => {
 
   if (!product) throw createError(404, 'Product not found.')
 
-  if (product.length <= 0) return { message: 'Product not found' }
+  if (product.length <= 0) return { message: 'Product not found.' }
 
   return product
 }
@@ -75,7 +82,7 @@ const updateProduct = async (req, res) => {
   // !== não funciona
 
   const category = await getCategoryById(newIdCategory)
-  if (!category) throw createError(402, 'Invalid category')
+  if (!category) throw createError(402, 'Invalid category.')
 
   await productToUpdate.$query().patch({name: newName, idCategory: newIdCategory, price: newPrice})
 
@@ -99,5 +106,6 @@ module.exports = {
   getProduct,
   newProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getProductById
 }
