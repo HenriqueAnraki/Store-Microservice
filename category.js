@@ -3,7 +3,7 @@ const { json } = require('micro')
 const { createError } = require('./error')
 const Category = require('./models/Category')
 
-const getCategoryAndProductsById = async (id) => {
+/* const getCategoryAndProductsById = async (id) => {
   const category = await Category
     .query()
     .findById(id)
@@ -11,38 +11,44 @@ const getCategoryAndProductsById = async (id) => {
     .modifyEager('products', builder => { builder.select('id', 'name', 'price') })
 
   return category
-}
+} */
 
 const getCategoryById = async (id) => {
   const category = await Category.query().findById(id)
 
   return category
 }
-
+/*
 const getCategoryByLikeName = async (name) => {
   const category = await Category
     .query()
-    .where('name', 'like', '%' + name + '%')
+    .skipUndefined()
+    .where('id', id)
+    .andWhere('name', 'like', '%' + name + '%')
     .eager('products')
     .modifyEager('products', builder => { builder.select('id', 'name', 'price') })
 
   return category
-}
+} */
 
 const getCategoryStringQuery = async (req) => {
-  const { id, name } = req.query
+  const { id, name, minprice, maxprice } = req.query
 
-  if (!id && !name) throw createError(401, 'Invalid request')
+  // if (!id && !name) throw createError(401, 'Invalid request')
 
-  if (id) {
-    const categoryById = await getCategoryAndProductsById(id)
-    return categoryById
-  }
+  const category = await Category
+    .query()
+    .skipUndefined()
+    .where('id', id)
+    .andWhere('name', 'like', '%' + name + '%')
+    .eager('products')
+    .modifyEager('products', builder => {
+      builder.select('id', 'name', 'price')
+        .where('price', '>=', minprice)
+        .andWhere('price', '<=', maxprice)
+    })
 
-  if (name) {
-    const categoryByName = await getCategoryByLikeName(name)
-    return categoryByName
-  }
+  return category
 }
 
 const getCategoryByName = async (name) => {
