@@ -1,9 +1,14 @@
-const { json, createError } = require('micro')
+const { json } = require('micro')
 
+const { createError } = require('./error')
 const Category = require('./models/Category')
 
 const getCategoryAndProductsById = async (id) => {
-  const category = await Category.query().findById(id).eager('products')
+  const category = await Category
+    .query()
+    .findById(id)
+    .eager('products')
+    .modifyEager('products', builder => { builder.select('id', 'name', 'price') })
 
   return category
 }
@@ -14,8 +19,12 @@ const getCategoryById = async (id) => {
   return category
 }
 
-const getCategoryByName = async (name) => {
-  const category = await Category.query().where('name', 'like', '%' + name + '%').eager('products')
+const getCategoryByLikeName = async (name) => {
+  const category = await Category
+    .query()
+    .where('name', 'like', '%' + name + '%')
+    .eager('products')
+    .modifyEager('products', builder => { builder.select('id', 'name', 'price') })
 
   return category
 }
@@ -23,7 +32,7 @@ const getCategoryByName = async (name) => {
 const getCategoryStringQuery = async (req) => {
   const { id, name } = req.query
 
-  if (!id && !name) throw createError(404, 'Category not found.')
+  if (!id && !name) throw createError(401, 'Invalid request')
 
   if (id) {
     const categoryById = await getCategoryAndProductsById(id)
@@ -31,23 +40,24 @@ const getCategoryStringQuery = async (req) => {
   }
 
   if (name) {
-    const categoryByName = await getCategoryByName(name)
+    const categoryByName = await getCategoryByLikeName(name)
     return categoryByName
   }
 }
 
-const getCategoryBySpecificName = async (name) => {
+const getCategoryByName = async (name) => {
   const category = await Category.query().where('name', name)
 
   return category
 }
 
+// Create
 const newCategory = async (req, res) => {
   const data = await json(req)
   const { name } = data
 
-  const category = await getCategoryBySpecificName(name)
-
+  const category = await getCategoryByName(name)
+  console.log('categoria: ', category)
   if (category.length > 0) throw createError(401, 'Category already exist.')
 
   await Category.query().insert({name: name})
@@ -55,10 +65,9 @@ const newCategory = async (req, res) => {
   return { message: 'Create successful.' }
 }
 
+// Read
 const getCategory = async (req, res) => {
   const category = await getCategoryStringQuery(req)
-
-  console.log('Category found: ', category)
 
   if (!category) throw createError(404, 'Category not found.')
 
@@ -68,14 +77,16 @@ const getCategory = async (req, res) => {
   return category
 }
 
+// Update
 const updateCategory = async (req, res) => {
   const data = await json(req)
   const { newName } = data
   const { id } = req.query
 
-  if (!id || !newName) throw createError(404, 'Category not found.')
+  if (!id || !newName) throw createError(401, 'Invalid request.')
 
-  const category = await getCategoryBySpecificName(newName)
+  // Can't change to same name
+  const category = await getCategoryByName(newName)
   if (category.length > 0) throw createError(401, 'Invalid Name.')
 
   const categoryToUpdate = await getCategoryById(id)
@@ -86,10 +97,11 @@ const updateCategory = async (req, res) => {
   return { message: 'Update successful.' }
 }
 
+// Delete
 const deleteCategory = async (req, res) => {
   const { id } = req.query
 
-  if (!id) throw createError(404, 'Category not found.')
+  if (!id) throw createError(401, 'Invalid request.')
 
   const category = await getCategoryById(id)
   if (!category || category.length <= 0) throw createError(404, 'Category not found.')
@@ -103,5 +115,6 @@ module.exports = {
   newCategory,
   getCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  getCategoryById
 }
