@@ -39,7 +39,7 @@ class Product extends Model {
         modelClass: Image,
         join: {
           from: 'products.id',
-          to: 'image.idProduct'
+          to: 'images.idProduct'
         }
       }
     }
