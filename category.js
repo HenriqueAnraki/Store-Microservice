@@ -52,15 +52,17 @@ const newCategory = async (req, res) => {
 
   await Category.query().insert({name: name})
 
-  return { Message: 'Create successful.' }
+  return { message: 'Create successful.' }
 }
 
 const getCategory = async (req, res) => {
   const category = await getCategoryStringQuery(req)
 
-  if (!category || category.length <= 0) throw createError(404, 'Category not found.')
-
   console.log('Category found: ', category)
+
+  if (!category) throw createError(404, 'Category not found.')
+
+  if (category.length <= 0) return { message: 'Category not found' }
 
   // return result (json) in response
   return category
@@ -74,14 +76,14 @@ const updateCategory = async (req, res) => {
   if (!id || !newName) throw createError(404, 'Category not found.')
 
   const category = await getCategoryBySpecificName(newName)
-  if (category.length > 0) createError(401, 'Invalid Name.')
+  if (category.length > 0) throw createError(401, 'Invalid Name.')
 
   const categoryToUpdate = await getCategoryById(id)
-  if (categoryToUpdate.length <= 0) createError(404, 'Category not found.')
+  if (categoryToUpdate.length <= 0) throw createError(404, 'Category not found.')
 
   await categoryToUpdate.$query().patch({name: newName})
 
-  return { Message: 'Update successful.' }
+  return { message: 'Update successful.' }
 }
 
 const deleteCategory = async (req, res) => {
@@ -90,11 +92,11 @@ const deleteCategory = async (req, res) => {
   if (!id) throw createError(404, 'Category not found.')
 
   const category = await getCategoryById(id)
-  if (category.length <= 0) createError(404, 'Category not found.')
+  if (!category || category.length <= 0) throw createError(404, 'Category not found.')
 
   await category.$query().delete()
 
-  return { Message: 'Delete successful.' }
+  return { message: 'Delete successful.' }
 }
 
 module.exports = {
