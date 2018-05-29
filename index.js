@@ -13,8 +13,6 @@ const knex = Knex(knexfile[knexConfig])
 
 Model.knex(knex)
 
-// verificar caso com 'id' e 'name'
-
 module.exports = handleErrors(
   router(
     get('/category', category.getCategory),
@@ -26,7 +24,7 @@ module.exports = handleErrors(
     patch('/product', product.updateProduct),
     del('/product', product.deleteProduct),
     get('/img', image.getImage),
-    post('/img', image.saveImage),
+    post('/img/:name.:type', image.saveImage),
     del('/img', image.deleteImage)
   )
 )

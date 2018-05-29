@@ -11,7 +11,6 @@ const getCategoryById = async (id) => {
 
 const getCategoryStringQuery = async (req) => {
   const { id, name, minprice, maxprice } = req.query
-  // if (!id && !name) throw createError(401, 'Invalid request.')
 
   const category = await Category
     .query()

@@ -71,15 +71,15 @@ const updateProduct = async (req, res) => {
   const data = await json(req)
   const { newIdCategory, newName, newPrice } = data
   const { id } = req.query
+  const idNumber = parseInt(id)
 
-  if (!id || !newName || !newIdCategory || !newPrice) throw createError(401, 'Invalid request.')
+  if (!idNumber || !newName || !newIdCategory || !newPrice) throw createError(401, 'Invalid request.')
 
   const productToUpdate = await getProductById(id)
-  if (productToUpdate.length <= 0) throw createError(404, 'Product not found.')
+  if (!productToUpdate) throw createError(404, 'Product not found.')
 
   const product = await getProductByName(newName)
-  if (product.length > 0 && id != product[0].id) throw createError(401, 'Invalid Name.')
-  // !== não funciona
+  if (product.length > 0 && product[0].id !== idNumber) throw createError(401, 'Invalid Name.')
 
   const category = await getCategoryById(newIdCategory)
   if (!category) throw createError(402, 'Invalid category.')

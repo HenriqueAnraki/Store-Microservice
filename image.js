@@ -1,9 +1,8 @@
-const { json } = require('micro')
-
 const { createError } = require('./error')
 const { getProductById } = require('./product')
 
 const Image = require('./models/Image')
+const images3 = require('./images3')
 
 const getImage = async (req, res) => {
   // buscar imagens do produto no GET /product
@@ -18,37 +17,49 @@ const getImage = async (req, res) => {
 
   if (img.length <= 0) throw createError(400, 'Image(s) not found.')
 
-  return img
+  return images3.fetch(img[0].imgUrl)
 }
 
 const saveImage = async (req, res) => {
-  const data = await json(req)
-  const { url, idProduct } = data
+  const fileName = await images3.set(req, res)
 
-  // precisa ser alterado para integrar com S3
-  if (!url || !idProduct) throw createError(401, 'Invalid request.')
+  const { prod } = req.query
 
-  const img = await Image.query().where({ 'imgUrl': url })
+  if (!prod) throw createError(401, 'Invalid request.')
+
+  console.log(fileName, ', ', prod)
+
+  const img = await Image.query().where({ 'imgUrl': fileName })
   if (img.length > 0) throw createError(401, 'Image already exist.')
 
-  const product = await getProductById(idProduct)
+  const product = await getProductById(prod)
   if (!product) throw createError(402, 'Invalid product.')
 
-  await Image.query().insert({ idProduct: idProduct, imgUrl: url })
+  await Image.query().insert({ idProduct: parseInt(prod), imgUrl: fileName })
 
   return { message: 'Create successful.' }
 }
 
 const deleteImage = async (req, res) => {
-  // ?id=1 or ?cat=1
-  const { id, prod } = req.query
+  // remover por porduto?
+  // const { id, prod } = req.query
+  const { id } = req.query
 
   const img = await Image
     .query()
     .skipUndefined()
-    .where('id', id)
+    .findById(id)
+    /* .where('id', id)
     .andWhere('idProduct', prod)
-    .delete()
+    .delete() */
+
+  console.log('img: ', img)
+  if (!img) throw createError(400, "Image don't exist.")
+
+  const result = await images3.remove(img.imgUrl)
+  console.log('result: ', result)
+
+  img.$query().delete()
 
   console.log(img)
 
