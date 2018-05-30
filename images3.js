@@ -90,9 +90,6 @@ const remove = async (filename) => {
       Bucket: config.BUCKET_NAME,
       Key: filename
     }).promise()
-
-    // verificar se realmente foi deletado
-    //  getobject, headobject, waitfor
   } catch (err) {
     if (err.statusCode === 404) {
       throw createError(404, 'Not Found')

@@ -5,8 +5,6 @@ const Image = require('./models/Image')
 const images3 = require('./images3')
 
 const getImage = async (req, res) => {
-  // buscar imagens do produto no GET /product
-
   const { id, prod } = req.query
 
   const img = await Image
@@ -41,17 +39,11 @@ const saveImage = async (req, res) => {
 }
 
 const deleteImage = async (req, res) => {
-  // remover por porduto?
-  // const { id, prod } = req.query
   const { id } = req.query
 
   const img = await Image
     .query()
-    .skipUndefined()
     .findById(id)
-    /* .where('id', id)
-    .andWhere('idProduct', prod)
-    .delete() */
 
   console.log('img: ', img)
   if (!img) throw createError(400, "Image don't exist.")
@@ -59,7 +51,11 @@ const deleteImage = async (req, res) => {
   const result = await images3.remove(img.imgUrl)
   console.log('result: ', result)
 
-  img.$query().delete()
+  // img.$query().delete()
+  await Image
+    .query()
+    .findById(id)
+    .delete()
 
   console.log(img)
 
