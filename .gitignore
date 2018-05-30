@@ -1,4 +1,6 @@
 node_modules/
+ignore/
 .vscode/
 */knexfile.js
 *.txt
+config.js

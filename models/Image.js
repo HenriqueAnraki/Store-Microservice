@@ -8,12 +8,12 @@ class Image extends Model {
   static get jsonSchema () {
     return {
       type: 'object',
-      required: ['url'],
+      required: ['imgUrl'],
 
       properties: {
         id: {type: 'integer'},
         idProduct: {type: 'integer'},
-        url: {type: 'string'}
+        imgUrl: {type: 'string'}
       }
     }
   }
